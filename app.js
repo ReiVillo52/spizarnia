@@ -90,6 +90,7 @@ async function addByBarcode(barcode) {
   }
 
   loadPantry();
+  showFeedback(`Dodano: ${product.name}`);
 }
 
 /***********************
@@ -198,4 +199,4 @@ Quagga.onDetected(async data => {
  * START
  ***********************/
 loadPantry();
-showFeedback(`Dodano: ${product.name}`);
+
