@@ -2,7 +2,7 @@
  * KONFIGURACJA
  ***********************/
 const SUPABASE_URL = 'https://eefntqtpekdepwecfdvq.supabase.co';
-const SUPABASE_KEY = 'sb_secret_0ia2m5vbeLJrygGO64-q9Q_aGaBWrzs';
+const SUPABASE_KEY = 'sb_publishable__TvITuQi1DiPpief1bAV4w_MHJlBHuQ';
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
@@ -108,48 +108,47 @@ async function loadPantry() {
 /***********************
  * SKANER (QUAGGA)
  ***********************/
-let lastCode = null;
+let processing = false;
 
-Quagga.init(
-  {
-    inputStream: {
-      name: 'Live',
-      type: 'LiveStream',
-      target: document.querySelector('#scanner'),
-      constraints: {
-        facingMode: 'environment'
-      }
-    },
-    decoder: {
-      readers: ['ean_reader', 'ean_8_reader']
+Quagga.init({
+  inputStream: {
+    type: "LiveStream",
+    target: document.querySelector("#scanner"),
+    constraints: {
+      facingMode: "environment"
     }
   },
-  err => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    Quagga.start();
+  decoder: {
+    readers: ["ean_reader", "ean_8_reader"]
   }
-);
-
-Quagga.onDetected(async data => {
-  const code = data.codeResult.code;
-
-  // blokada podwójnego skanu
-  if (code === lastCode) return;
-  lastCode = code;
-
-  Quagga.stop();
-  await addByBarcode(code);
-
-  setTimeout(() => {
-    lastCode = null;
-    Quagga.start();
-  }, 1500);
+}, err => {
+  if (err) {
+    console.error("Quagga init error:", err);
+    return;
+  }
+  Quagga.start();
 });
 
+Quagga.onDetected(async data => {
+  if (processing) return;
+  processing = true;
+
+  const code = data.codeResult.code;
+  console.log("Zeskanowano:", code);
+
+  try {
+    await addByBarcode(code);
+  } catch (e) {
+    console.error("Błąd dodawania:", e);
+  }
+
+  setTimeout(() => {
+    processing = false;
+  }, 1200);
+});
 /***********************
  * START
  ***********************/
 loadPantry();
+
+console.log("Dodaję produkt:", barcode);
