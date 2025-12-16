@@ -14,18 +14,19 @@ let processing = false;
 
 
 function showFeedback(text) {
-  const box = document.getElementById('scanFeedback');
-  const beep = document.getElementById('beep');
+  const list = document.getElementById('list');
+  if (!list) return;
 
-  box.textContent = text;
-  box.classList.add('show');
+  const li = document.createElement('li');
+  li.textContent = text;
+  li.className = 'flashItem';
+  list.prepend(li);
 
   if (navigator.vibrate) navigator.vibrate(100);
-  if (beep) beep.play();
 
   setTimeout(() => {
-    box.classList.remove('show');
-  }, 600);
+    li.remove();
+  }, 1000);
 }
 
 

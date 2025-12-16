@@ -214,6 +214,18 @@ input#search {
 #scanFeedback.show {
   opacity: 1;
 }
+
+
+.flashItem {
+  background: #4caf50;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  text-align: center;
+  opacity: 0.9;
+}
 /* 6. Media Queries (Mobile-First) */
 
 /* Na większych ekranach (opcjonalnie, ale dodaje nowoczesności) */
