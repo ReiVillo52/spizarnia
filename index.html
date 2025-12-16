@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Spiżarnia</title>
-
+    <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 
@@ -20,6 +20,15 @@
 <h1>Spiżarnia</h1>
 
 <div id="scanner"></div>
+<div class="manual">
+  <input id="manualBarcode" placeholder="Wpisz kod kreskowy">
+  <button onclick="manualAdd()">Dodaj</button>
+</div>
+<input
+  id="search"
+  placeholder="Szukaj produktu..."
+  oninput="filterList()"
+/>
 
 <ul id="list"></ul>
 <script src="https://unpkg.com/@supabase/supabase-js"></script>

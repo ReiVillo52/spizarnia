@@ -9,22 +9,25 @@ const supabaseClient = supabase.createClient(
   SUPABASE_KEY
 );
 
+let pantryCache = [];
+let processing = false;
+
 /***********************
  * DODAWANIE PRODUKTU
  ***********************/
 async function addByBarcode(barcode) {
   if (!barcode) return;
 
-  console.log('Skan:', barcode);
+  console.log('Dodaję produkt:', barcode);
 
-  // 1️⃣ sprawdź produkt w products
-  let { data: product, error } = await supabaseClient
+  // 1️⃣ sprawdź product
+  let { data: product } = await supabaseClient
     .from('products')
     .select('*')
     .eq('barcode', barcode)
     .single();
 
-  // 2️⃣ jeśli nie ma — OpenFoodFacts
+  // 2️⃣ OpenFoodFacts
   if (!product) {
     const res = await fetch(
       `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
@@ -42,19 +45,14 @@ async function addByBarcode(barcode) {
 
     const insert = await supabaseClient
       .from('products')
-      .insert({
-        barcode,
-        name,
-        brand,
-        category
-      })
+      .insert({ barcode, name, brand, category })
       .select()
       .single();
 
     product = insert.data;
   }
 
-  // 3️⃣ sprawdź czy jest już w pantry
+  // 3️⃣ pantry
   let { data: pantryItem } = await supabaseClient
     .from('pantry')
     .select('*')
@@ -62,13 +60,11 @@ async function addByBarcode(barcode) {
     .single();
 
   if (pantryItem) {
-    // zwiększ ilość
     await supabaseClient
       .from('pantry')
       .update({ quantity: pantryItem.quantity + 1 })
       .eq('id', pantryItem.id);
   } else {
-    // dodaj nowy
     await supabaseClient.from('pantry').insert({
       product_id: product.id,
       quantity: 1,
@@ -80,7 +76,7 @@ async function addByBarcode(barcode) {
 }
 
 /***********************
- * WCZYTYWANIE SPIŻARNI
+ * WCZYTYWANIE + RENDER
  ***********************/
 async function loadPantry() {
   const { data } = await supabaseClient
@@ -95,28 +91,59 @@ async function loadPantry() {
     `)
     .order('added_at', { ascending: false });
 
+  pantryCache = data || [];
+  renderList(pantryCache);
+}
+
+function renderList(items) {
   const list = document.getElementById('list');
   list.innerHTML = '';
 
-  data.forEach(item => {
+  items.forEach(item => {
     const li = document.createElement('li');
-    li.textContent = `${item.products.name} (${item.products.brand}) x${item.quantity}`;
+    li.className = 'item';
+    li.innerHTML = `
+      <span class="name">${item.products.name}</span>
+      <span class="brand">${item.products.brand || ''}</span>
+      <span class="qty">x${item.quantity}</span>
+    `;
     list.appendChild(li);
   });
 }
 
 /***********************
+ * WYSZUKIWARKA
+ ***********************/
+function filterList() {
+  const q = document.getElementById('search').value.toLowerCase();
+
+  const filtered = pantryCache.filter(item =>
+    item.products.name.toLowerCase().includes(q)
+  );
+
+  renderList(filtered);
+}
+
+/***********************
+ * RĘCZNE WPISYWANIE
+ ***********************/
+function manualAdd() {
+  const input = document.getElementById('manualBarcode');
+  const code = input.value.trim();
+  if (!code) return;
+
+  addByBarcode(code);
+  input.value = '';
+}
+
+/***********************
  * SKANER (QUAGGA)
  ***********************/
-let processing = false;
-
 Quagga.init({
   inputStream: {
     type: "LiveStream",
     target: document.querySelector("#scanner"),
-    constraints: {
-      facingMode: "environment"
-    }
+    constraints: { facingMode: "environment" }
   },
   decoder: {
     readers: ["ean_reader", "ean_8_reader"]
@@ -139,16 +166,15 @@ Quagga.onDetected(async data => {
   try {
     await addByBarcode(code);
   } catch (e) {
-    console.error("Błąd dodawania:", e);
+    console.error("Błąd:", e);
   }
 
   setTimeout(() => {
     processing = false;
   }, 1200);
 });
+
 /***********************
  * START
  ***********************/
 loadPantry();
-
-console.log("Dodaję produkt:", barcode);

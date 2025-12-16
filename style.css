@@ -1,0 +1,42 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+.manual, #search {
+  max-width: 400px;
+  margin: 10px auto;
+  display: flex;
+  gap: 10px;
+}
+
+input, button {
+  padding: 10px;
+  font-size: 16px;
+}
+
+ul {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 0;
+}
+
+.item {
+  list-style: none;
+  background: white;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.qty {
+  color: #666;
+}
