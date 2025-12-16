@@ -12,6 +12,23 @@ const supabaseClient = supabase.createClient(
 let pantryCache = [];
 let processing = false;
 
+
+function showFeedback(text) {
+  const box = document.getElementById('scanFeedback');
+  const beep = document.getElementById('beep');
+
+  box.textContent = text;
+  box.classList.add('show');
+
+  if (navigator.vibrate) navigator.vibrate(100);
+  if (beep) beep.play();
+
+  setTimeout(() => {
+    box.classList.remove('show');
+  }, 600);
+}
+
+
 /***********************
  * DODAWANIE PRODUKTU
  ***********************/
@@ -176,20 +193,7 @@ Quagga.onDetected(async data => {
   }, 1200);
 });
 
-function showFeedback(text) {
-  const box = document.getElementById('scanFeedback');
-  const beep = document.getElementById('beep');
 
-  box.textContent = text;
-  box.classList.add('show');
-
-  if (navigator.vibrate) navigator.vibrate(100);
-  if (beep) beep.play();
-
-  setTimeout(() => {
-    box.classList.remove('show');
-  }, 600);
-}
 /***********************
  * START
  ***********************/
