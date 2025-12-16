@@ -104,12 +104,14 @@ function renderList(items) {
     li.className = 'item';
     li.innerHTML = `
       <span class="name">${item.products.name}</span>
-      <span class="brand">${item.products.brand || ''}</span>
+      
       <span class="qty">x${item.quantity}</span>
     `;
     list.appendChild(li);
   });
 }
+//<span class="brand">${item.products.brand || ''}</span>
+
 
 /***********************
  * WYSZUKIWARKA
@@ -173,6 +175,7 @@ Quagga.onDetected(async data => {
     processing = false;
   }, 1200);
 });
+
 
 /***********************
  * START

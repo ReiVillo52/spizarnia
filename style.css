@@ -1,42 +1,207 @@
+/* Plik: style.css */
+
+/* 1. Zmienne i Reset */
+:root {
+    /* Kolory */
+    --primary-color: #2c3e50;    /* Ciemny granat/szarość (na nagłówki, przyciski) */
+    --secondary-color: #1abc9c;  /* Turkus (akcent, hover) */
+    --background-color: #ecf0f1; /* Jasna, prawie biała szarość */
+    --text-color: #34495e;       /* Ciemna, czytelna szarość */
+    --border-color: #bdc3c7;     /* Lekki kolor ramki */
+    --success-color: #2ecc71;    /* Zielony (sukces, dodanie) */
+    --danger-color: #e74c3c;     /* Czerwony (usuwanie) */
+
+    /* Cienie i zaokrąglenia */
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 12px rgba(0, 0, 0, 0.15);
+    --border-radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-  font-family: system-ui, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centrowanie kontenera głównego */
+    min-height: 100vh;
 }
 
-.manual, #search {
-  max-width: 400px;
-  margin: 10px auto;
-  display: flex;
-  gap: 10px;
+/* 2. Nagłówek */
+h1 {
+    color: var(--primary-color);
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    font-weight: 700;
+    text-align: center;
 }
 
-input, button {
-  padding: 10px;
-  font-size: 16px;
+/* 3. Ogólne Elementy Formularzy i Kontrolki */
+input,
+button {
+    padding: 12px 15px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    font-size: 1em;
+    transition: all 0.3s ease;
+    outline: none;
 }
 
-ul {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 0;
+input[type="text"],
+input#manualBarcode,
+input#search {
+    width: 100%;
+    margin-bottom: 10px;
+    background-color: white;
+    box-shadow: var(--shadow-light);
 }
 
-.item {
-  list-style: none;
-  background: white;
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.3); /* Lekka poświata turkusowa */
 }
 
-.name {
-  font-weight: 600;
+button {
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    border: none;
+    box-shadow: var(--shadow-light);
 }
 
-.qty {
-  color: #666;
+button:hover {
+    background-color: var(--secondary-color);
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* 4. Sekcje Specyficzne */
+
+/* Kontener główny (dla lepszego centrowania i ograniczenia szerokości) */
+body > * {
+    max-width: 600px;
+    width: 100%;
+}
+
+/* Skaner (utrzymanie istniejących stylów) */
+#scanner {
+    width: 100%;
+    max-width: 400px; /* Dodane dla lepszej kontroli na większych ekranach */
+    min-height: 200px; /* Minimalna wysokość, żeby element był widoczny */
+    margin: 20px auto;
+    background-color: #232a31; /* Ciemne tło dla kontrastu z kamerą */
+    border-radius: var(--border-radius);
+    overflow: hidden; /* Ważne dla wideo skanera */
+    box-shadow: var(--shadow-hover);
+}
+
+/* Sekcja ręcznego wprowadzania */
+.manual {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: stretch; /* Rozciągnij elementy na wysokość */
+}
+
+.manual input {
+    flex-grow: 1; /* Pozwól inputowi zająć więcej miejsca */
+    margin-bottom: 0;
+}
+
+.manual button {
+    flex-shrink: 0; /* Nie pozwól, aby przycisk się kurczył */
+    min-width: 100px;
+    background-color: var(--success-color); /* Zmiana koloru na akcent */
+}
+
+.manual button:hover {
+    background-color: #27ae60;
+}
+
+/* Pole wyszukiwania */
+input#search {
+    margin-bottom: 20px;
+    /* Usunięcie inputa z flexa dla lepszej kontroli szerokości */
+}
+
+
+/* 5. Lista Produktów */
+#list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+#list li {
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid var(--secondary-color); /* Akcent graficzny */
+    transition: transform 0.2s ease;
+}
+
+#list li:hover {
+    transform: translateX(5px);
+}
+
+/* Styl dla elementów listy wewnątrz app.js (przykład, może wymagać dostosowania) */
+.product-name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.product-barcode {
+    font-size: 0.85em;
+    color: var(--border-color);
+}
+
+.delete-button {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    font-size: 1.2em;
+    padding: 5px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    box-shadow: none; /* Resetowanie cienia dla przycisku w liście */
+}
+
+.delete-button:hover {
+    color: var(--primary-color); /* Zmiana koloru na hover */
+    background: none;
+    transform: none; /* Brak przesunięcia */
+}
+
+
+/* 6. Media Queries (Mobile-First) */
+
+/* Na większych ekranach (opcjonalnie, ale dodaje nowoczesności) */
+@media (min-width: 600px) {
+    body {
+        padding: 40px;
+    }
+    h1 {
+        font-size: 3em;
+        margin-bottom: 40px;
+    }
 }
