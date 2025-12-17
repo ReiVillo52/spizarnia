@@ -13,20 +13,26 @@ let pantryCache = [];
 let processing = false;
 
 
-function showFeedback(text) {
-  const list = document.getElementById('list');
-  if (!list) return;
+function showFeedback(text, success = true) {
+  const box = document.getElementById('scanFeedback');
+  const beep = document.getElementById('beep');
 
-  const li = document.createElement('li');
-  li.textContent = text;
-  li.className = 'flashItem';
-  list.prepend(li);
+  if (!box) return;
 
-  if (navigator.vibrate) navigator.vibrate(100);
+  box.textContent = text;
+  box.className = success ? 'feedback success' : 'feedback error';
+
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  if (beep) {
+    beep.currentTime = 0;
+    beep.play();
+  }
+
+  box.classList.add('show');
 
   setTimeout(() => {
-    li.remove();
-  }, 1000);
+    box.classList.remove('show');
+  }, 1200);
 }
 
 
@@ -121,11 +127,21 @@ function renderList(items) {
   items.forEach(item => {
     const li = document.createElement('li');
     li.className = 'item';
+
     li.innerHTML = `
-      <span class="name">${item.products.name}</span>
-      
-      <span class="qty">x${item.quantity}</span>
+      <label class="row">
+        <input type="checkbox" class="takeBox">
+        <span class="name">${item.products.name}</span>
+        <span class="qty">x${item.quantity}</span>
+      </label>
     `;
+
+    const checkbox = li.querySelector('.takeBox');
+
+    checkbox.addEventListener('change', () => {
+      li.classList.toggle('taken', checkbox.checked);
+    });
+
     list.appendChild(li);
   });
 }
@@ -182,17 +198,20 @@ Quagga.onDetected(async data => {
   processing = true;
 
   const code = data.codeResult.code;
-  console.log("Zeskanowano:", code);
+
+  // 🔔 natychmiastowy sygnał (jeszcze przed bazą)
+  showFeedback(`Zeskanowano: ${code}`);
 
   try {
     await addByBarcode(code);
   } catch (e) {
-    console.error("Błąd:", e);
+    showFeedback('Błąd skanowania', false);
+    console.error(e);
   }
 
   setTimeout(() => {
     processing = false;
-  }, 1200);
+  }, 1500);
 });
 
 
