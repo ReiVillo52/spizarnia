@@ -110,6 +110,7 @@ async function loadPantry() {
     .select(`
       id,
       quantity,
+      taken,
       products (
         name
       )
@@ -128,13 +129,26 @@ function renderList(items) {
     const li = document.createElement('li');
     li.className = 'item';
     li.textContent = `${item.products.name} x${item.quantity}`;
-    li.style.padding = '12px';
-    li.style.borderBottom = '1px solid #ccc';
 
-    li.addEventListener('click', () => {
-      const taken = li.style.opacity === '0.4';
-      li.style.opacity = taken ? '1' : '0.4';
-      li.style.textDecoration = taken ? 'none' : 'line-through';
+    // jeśli już wzięte, ustaw style
+    if(item.taken){
+      li.style.opacity = '0.4';
+      li.style.textDecoration = 'line-through';
+    }
+
+    li.addEventListener('click', async () => {
+      const newTaken = !item.taken;
+      item.taken = newTaken;
+
+      // od razu update w Supabase
+      await supabaseClient
+        .from('pantry')
+        .update({ taken: newTaken })
+        .eq('id', item.id);
+
+      // update front-end
+      li.style.opacity = newTaken ? '0.4' : '1';
+      li.style.textDecoration = newTaken ? 'line-through' : 'none';
     });
 
     list.appendChild(li);
