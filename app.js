@@ -22,11 +22,13 @@ function showFeedback(text, success = true) {
   box.textContent = text;
   box.className = success ? 'feedback success' : 'feedback error';
 
+  if (userActivated) {
   if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   if (beep) {
     beep.currentTime = 0;
     beep.play();
   }
+}
 
   box.classList.add('show');
 
@@ -220,3 +222,9 @@ Quagga.onDetected(async data => {
  ***********************/
 loadPantry();
 
+let userActivated = false;
+
+document.getElementById('startApp').addEventListener('click', () => {
+  userActivated = true;
+  showFeedback('Skaner gotowy');
+});
