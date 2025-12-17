@@ -207,9 +207,10 @@ Quagga.onDetected(async data => {
     console.error(e);
   }
 
+  // ⏳ DELAY PO SKANIE (3 sekundy)
   setTimeout(() => {
     processing = false;
-  }, 1500);
+  }, 3000);
 });
 
 /***********************
