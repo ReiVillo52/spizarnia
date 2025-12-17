@@ -11,32 +11,33 @@ const supabaseClient = supabase.createClient(
 
 let pantryCache = [];
 let processing = false;
+let scannerStarted = false;
 
-
-function showFeedback(text, success = true) {
+/***********************
+ * FEEDBACK – ZAWSZE WIDOCZNY NA TELEFONIE
+ ***********************/
+function showFeedback(text, error = false) {
   const box = document.getElementById('scanFeedback');
-  const beep = document.getElementById('beep');
-
   if (!box) return;
 
   box.textContent = text;
-  box.className = success ? 'feedback success' : 'feedback error';
-
-  if (userActivated) {
-  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-  if (beep) {
-    beep.currentTime = 0;
-    beep.play();
-  }
-}
-
-  box.classList.add('show');
+  box.style.position = 'fixed';
+  box.style.top = '40%';
+  box.style.left = '50%';
+  box.style.transform = 'translate(-50%, -50%)';
+  box.style.padding = '20px 30px';
+  box.style.fontSize = '20px';
+  box.style.fontWeight = '700';
+  box.style.borderRadius = '12px';
+  box.style.zIndex = '9999';
+  box.style.background = error ? '#e74c3c' : '#2ecc71';
+  box.style.color = '#fff';
+  box.style.display = 'block';
 
   setTimeout(() => {
-    box.classList.remove('show');
-  }, 1200);
+    box.style.display = 'none';
+  }, 1000);
 }
-
 
 /***********************
  * DODAWANIE PRODUKTU
@@ -44,9 +45,7 @@ function showFeedback(text, success = true) {
 async function addByBarcode(barcode) {
   if (!barcode) return;
 
-  console.log('Dodaję produkt:', barcode);
-
-  // 1️⃣ sprawdź product
+  // 1️⃣ products
   let { data: product } = await supabaseClient
     .from('products')
     .select('*')
@@ -103,7 +102,7 @@ async function addByBarcode(barcode) {
 }
 
 /***********************
- * WCZYTYWANIE + RENDER
+ * WCZYTYWANIE + LISTA (KLIK PALCEM)
  ***********************/
 async function loadPantry() {
   const { data } = await supabaseClient
@@ -112,8 +111,7 @@ async function loadPantry() {
       id,
       quantity,
       products (
-        name,
-        brand
+        name
       )
     `)
     .order('added_at', { ascending: false });
@@ -129,42 +127,34 @@ function renderList(items) {
   items.forEach(item => {
     const li = document.createElement('li');
     li.className = 'item';
+    li.textContent = `${item.products.name} x${item.quantity}`;
+    li.style.padding = '12px';
+    li.style.borderBottom = '1px solid #ccc';
 
-    li.innerHTML = `
-      <label class="row">
-        <input type="checkbox" class="takeBox">
-        <span class="name">${item.products.name}</span>
-        <span class="qty">x${item.quantity}</span>
-      </label>
-    `;
-
-    const checkbox = li.querySelector('.takeBox');
-
-    checkbox.addEventListener('change', () => {
-      li.classList.toggle('taken', checkbox.checked);
+    li.addEventListener('click', () => {
+      const taken = li.style.opacity === '0.4';
+      li.style.opacity = taken ? '1' : '0.4';
+      li.style.textDecoration = taken ? 'none' : 'line-through';
     });
 
     list.appendChild(li);
   });
 }
-//<span class="brand">${item.products.brand || ''}</span>
-
 
 /***********************
  * WYSZUKIWARKA
  ***********************/
 function filterList() {
   const q = document.getElementById('search').value.toLowerCase();
-
-  const filtered = pantryCache.filter(item =>
-    item.products.name.toLowerCase().includes(q)
+  renderList(
+    pantryCache.filter(item =>
+      item.products.name.toLowerCase().includes(q)
+    )
   );
-
-  renderList(filtered);
 }
 
 /***********************
- * RĘCZNE WPISYWANIE
+ * RĘCZNE DODAWANIE
  ***********************/
 function manualAdd() {
   const input = document.getElementById('manualBarcode');
@@ -176,24 +166,31 @@ function manualAdd() {
 }
 
 /***********************
- * SKANER (QUAGGA)
+ * SKANER – START DOPIERO PO KLIKNIĘCIU
  ***********************/
-Quagga.init({
-  inputStream: {
-    type: "LiveStream",
-    target: document.querySelector("#scanner"),
-    constraints: { facingMode: "environment" }
-  },
-  decoder: {
-    readers: ["ean_reader", "ean_8_reader"]
-  }
-}, err => {
-  if (err) {
-    console.error("Quagga init error:", err);
-    return;
-  }
-  Quagga.start();
-});
+function startScanner() {
+  if (scannerStarted) return;
+  scannerStarted = true;
+
+  Quagga.init({
+    inputStream: {
+      type: 'LiveStream',
+      target: document.querySelector('#scanner'),
+      constraints: { facingMode: 'environment' }
+    },
+    decoder: {
+      readers: ['ean_reader', 'ean_8_reader']
+    }
+  }, err => {
+    if (err) {
+      alert('Błąd kamery');
+      console.error(err);
+      return;
+    }
+    Quagga.start();
+    showFeedback('Skaner uruchomiony');
+  });
+}
 
 Quagga.onDetected(async data => {
   if (processing) return;
@@ -201,13 +198,12 @@ Quagga.onDetected(async data => {
 
   const code = data.codeResult.code;
 
-  // 🔔 natychmiastowy sygnał (jeszcze przed bazą)
   showFeedback(`Zeskanowano: ${code}`);
 
   try {
     await addByBarcode(code);
   } catch (e) {
-    showFeedback('Błąd skanowania', false);
+    showFeedback('Błąd skanowania', true);
     console.error(e);
   }
 
@@ -216,15 +212,9 @@ Quagga.onDetected(async data => {
   }, 1500);
 });
 
-
 /***********************
  * START
  ***********************/
 loadPantry();
 
-let userActivated = false;
-
-document.getElementById('startApp').addEventListener('click', () => {
-  userActivated = true;
-  showFeedback('Skaner gotowy');
-});
+document.getElementById('startApp').addEventListener('click', startScanner);
