@@ -55,7 +55,7 @@ async function addByBarcode(barcode) {
   // 2️⃣ OpenFoodFacts
   if (!product) {
     const res = await fetch(
-      https://world.openfoodfacts.org/api/v0/product/${barcode}.json
+      `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
     );
     const json = await res.json();
 
@@ -98,7 +98,7 @@ async function addByBarcode(barcode) {
   }
 
   loadPantry();
-  showFeedback(Dodano: ${product.name});
+  showFeedback(`Dodano: ${product.name}`);
 }
 
 /***********************
@@ -107,14 +107,14 @@ async function addByBarcode(barcode) {
 async function loadPantry() {
   const { data } = await supabaseClient
     .from('pantry')
-    .select(
+    .select(`
       id,
       quantity,
       taken,
       products (
         name
       )
-    )
+    `)
     .order('added_at', { ascending: false });
 
   pantryCache = data || [];
@@ -128,7 +128,7 @@ function renderList(items) {
   items.forEach(item => {
     const li = document.createElement('li');
     li.className = 'item';
-    li.textContent = ${item.products.name} x${item.quantity};
+    li.textContent = `${item.products.name} x${item.quantity}`;
 
     // jeśli już wzięte, ustaw style
     if(item.taken){
@@ -212,7 +212,7 @@ Quagga.onDetected(async data => {
 
   const code = data.codeResult.code;
 
-  showFeedback(Zeskanowano: ${code});
+  showFeedback(`Zeskanowano: ${code}`);
 
   try {
     await addByBarcode(code);
