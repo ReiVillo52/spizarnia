@@ -14,7 +14,7 @@ let processing = false;
 let scannerStarted = false;
 
 /***********************
- * FEEDBACK – ZAWSZE WIDOCZNY
+ * FEEDBACK – ZAWSZE WIDOCZNY NA TELEFONIE
  ***********************/
 function showFeedback(text, error = false) {
   const box = document.getElementById('scanFeedback');
@@ -36,61 +36,48 @@ function showFeedback(text, error = false) {
 
   setTimeout(() => {
     box.style.display = 'none';
-  }, 1200);
+  }, 1000);
 }
 
 /***********************
- * DODAWANIE PO KODZIE
+ * DODAWANIE PRODUKTU
  ***********************/
 async function addByBarcode(barcode) {
   if (!barcode) return;
 
-  // 1️⃣ Szukaj w products
+  // 1️⃣ products
   let { data: product } = await supabaseClient
     .from('products')
     .select('*')
     .eq('barcode', barcode)
     .single();
 
-  // 2️⃣ Jeśli brak → Open Food Facts
+  // 2️⃣ OpenFoodFacts
   if (!product) {
     const res = await fetch(
-      `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+      https://world.openfoodfacts.org/api/v0/product/${barcode}.json
     );
     const json = await res.json();
 
-    if (json.status !== 1) {
-      showFeedback('Produkt nieznany (OFF)', true);
-      return;
-    }
-
     const name =
-      json.product.product_name_pl ||
-      json.product.product_name ||
-      json.product.generic_name_pl ||
-      json.product.generic_name ||
+      json.product?.product_name ||
+      json.product?.product_name_pl ||
       'Nieznany produkt';
 
-    const brand = json.product.brands || '';
-    const category = json.product.categories || '';
-    const image = json.product.image_front_url || '';
+    const brand = json.product?.brands || '';
+    const category =
+      json.product?.categories_tags?.[0]?.replace('pl:', '') || '';
 
     const insert = await supabaseClient
       .from('products')
-      .insert({
-        barcode,
-        name,
-        brand,
-        category,
-        image
-      })
+      .insert({ barcode, name, brand, category })
       .select()
       .single();
 
     product = insert.data;
   }
 
-  // 3️⃣ Pantry
+  // 3️⃣ pantry
   let { data: pantryItem } = await supabaseClient
     .from('pantry')
     .select('*')
@@ -111,23 +98,23 @@ async function addByBarcode(barcode) {
   }
 
   loadPantry();
-  showFeedback(`Dodano: ${product.name}`);
+  showFeedback(Dodano: ${product.name});
 }
 
 /***********************
- * WCZYTYWANIE LISTY
+ * WCZYTYWANIE + LISTA (KLIK PALCEM)
  ***********************/
 async function loadPantry() {
   const { data } = await supabaseClient
     .from('pantry')
-    .select(`
+    .select(
       id,
       quantity,
       taken,
       products (
         name
       )
-    `)
+    )
     .order('added_at', { ascending: false });
 
   pantryCache = data || [];
@@ -141,23 +128,27 @@ function renderList(items) {
   items.forEach(item => {
     const li = document.createElement('li');
     li.className = 'item';
-    li.textContent = `${item.products.name} x${item.quantity}`;
+    li.textContent = ${item.products.name} x${item.quantity};
 
-    if (item.taken) {
+    // jeśli już wzięte, ustaw style
+    if(item.taken){
       li.style.opacity = '0.4';
       li.style.textDecoration = 'line-through';
     }
 
     li.addEventListener('click', async () => {
-      item.taken = !item.taken;
+      const newTaken = !item.taken;
+      item.taken = newTaken;
 
+      // od razu update w Supabase
       await supabaseClient
         .from('pantry')
-        .update({ taken: item.taken })
+        .update({ taken: newTaken })
         .eq('id', item.id);
 
-      li.style.opacity = item.taken ? '0.4' : '1';
-      li.style.textDecoration = item.taken ? 'line-through' : 'none';
+      // update front-end
+      li.style.opacity = newTaken ? '0.4' : '1';
+      li.style.textDecoration = newTaken ? 'line-through' : 'none';
     });
 
     list.appendChild(li);
@@ -189,7 +180,7 @@ function manualAdd() {
 }
 
 /***********************
- * SKANER
+ * SKANER – START DOPIERO PO KLIKNIĘCIU
  ***********************/
 function startScanner() {
   if (scannerStarted) return;
@@ -220,7 +211,8 @@ Quagga.onDetected(async data => {
   processing = true;
 
   const code = data.codeResult.code;
-  showFeedback(`Kod: ${code}`);
+
+  showFeedback(Zeskanowano: ${code});
 
   try {
     await addByBarcode(code);
@@ -229,6 +221,7 @@ Quagga.onDetected(async data => {
     console.error(e);
   }
 
+  // ⏳ DELAY PO SKANIE (3 sekundy)
   setTimeout(() => {
     processing = false;
   }, 3000);
@@ -238,4 +231,5 @@ Quagga.onDetected(async data => {
  * START
  ***********************/
 loadPantry();
+
 document.getElementById('startApp').addEventListener('click', startScanner);
