@@ -14,7 +14,7 @@ let processing = false;
 let scannerStarted = false;
 
 /***********************
- * FEEDBACK – ZAWSZE WIDOCZNY NA TELEFONIE
+ * FEEDBACK – ZAWSZE WIDOCZNY
  ***********************/
 function showFeedback(text, error = false) {
   const box = document.getElementById('scanFeedback');
@@ -36,48 +36,61 @@ function showFeedback(text, error = false) {
 
   setTimeout(() => {
     box.style.display = 'none';
-  }, 1000);
+  }, 1200);
 }
 
 /***********************
- * DODAWANIE PRODUKTU
+ * DODAWANIE PO KODZIE
  ***********************/
 async function addByBarcode(barcode) {
   if (!barcode) return;
 
-  // 1️⃣ products
+  // 1️⃣ Szukaj w products
   let { data: product } = await supabaseClient
     .from('products')
     .select('*')
     .eq('barcode', barcode)
     .single();
 
-  // 2️⃣ OpenFoodFacts
+  // 2️⃣ Jeśli brak → Open Food Facts
   if (!product) {
     const res = await fetch(
       `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
     );
     const json = await res.json();
 
+    if (json.status !== 1) {
+      showFeedback('Produkt nieznany (OFF)', true);
+      return;
+    }
+
     const name =
-      json.product?.product_name ||
-      json.product?.product_name_pl ||
+      json.product.product_name_pl ||
+      json.product.product_name ||
+      json.product.generic_name_pl ||
+      json.product.generic_name ||
       'Nieznany produkt';
 
-    const brand = json.product?.brands || '';
-    const category =
-      json.product?.categories_tags?.[0]?.replace('pl:', '') || '';
+    const brand = json.product.brands || '';
+    const category = json.product.categories || '';
+    const image = json.product.image_front_url || '';
 
     const insert = await supabaseClient
       .from('products')
-      .insert({ barcode, name, brand, category })
+      .insert({
+        barcode,
+        name,
+        brand,
+        category,
+        image
+      })
       .select()
       .single();
 
     product = insert.data;
   }
 
-  // 3️⃣ pantry
+  // 3️⃣ Pantry
   let { data: pantryItem } = await supabaseClient
     .from('pantry')
     .select('*')
@@ -102,7 +115,7 @@ async function addByBarcode(barcode) {
 }
 
 /***********************
- * WCZYTYWANIE + LISTA (KLIK PALCEM)
+ * WCZYTYWANIE LISTY
  ***********************/
 async function loadPantry() {
   const { data } = await supabaseClient
@@ -130,25 +143,21 @@ function renderList(items) {
     li.className = 'item';
     li.textContent = `${item.products.name} x${item.quantity}`;
 
-    // jeśli już wzięte, ustaw style
-    if(item.taken){
+    if (item.taken) {
       li.style.opacity = '0.4';
       li.style.textDecoration = 'line-through';
     }
 
     li.addEventListener('click', async () => {
-      const newTaken = !item.taken;
-      item.taken = newTaken;
+      item.taken = !item.taken;
 
-      // od razu update w Supabase
       await supabaseClient
         .from('pantry')
-        .update({ taken: newTaken })
+        .update({ taken: item.taken })
         .eq('id', item.id);
 
-      // update front-end
-      li.style.opacity = newTaken ? '0.4' : '1';
-      li.style.textDecoration = newTaken ? 'line-through' : 'none';
+      li.style.opacity = item.taken ? '0.4' : '1';
+      li.style.textDecoration = item.taken ? 'line-through' : 'none';
     });
 
     list.appendChild(li);
@@ -180,7 +189,7 @@ function manualAdd() {
 }
 
 /***********************
- * SKANER – START DOPIERO PO KLIKNIĘCIU
+ * SKANER
  ***********************/
 function startScanner() {
   if (scannerStarted) return;
@@ -211,8 +220,7 @@ Quagga.onDetected(async data => {
   processing = true;
 
   const code = data.codeResult.code;
-
-  showFeedback(`Zeskanowano: ${code}`);
+  showFeedback(`Kod: ${code}`);
 
   try {
     await addByBarcode(code);
@@ -221,7 +229,6 @@ Quagga.onDetected(async data => {
     console.error(e);
   }
 
-  // ⏳ DELAY PO SKANIE (3 sekundy)
   setTimeout(() => {
     processing = false;
   }, 3000);
@@ -231,5 +238,4 @@ Quagga.onDetected(async data => {
  * START
  ***********************/
 loadPantry();
-
 document.getElementById('startApp').addEventListener('click', startScanner);
