@@ -4,39 +4,485 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spiżarnia</title>
-    <link rel="stylesheet" href="style.css" />
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 
   <style>
-    #scanner {
-        width: 100%;
-        max-width: 400px;
-        height: 300px;
-        margin: 20px auto;
-        }
+    :root {
+      --cream: #f5f0e8;
+      --ink: #1a1a18;
+      --sage: #7a9e7e;
+      --rust: #c4623a;
+      --warm-gray: #8c8880;
+      --card-bg: #fffdf8;
+      --border: #e2ddd4;
+    }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      width: 100%;
+      background-color: var(--ink);
+      color: var(--cream);
+      padding: 28px 24px 22px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .app-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--cream);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .app-header .subtitle {
+      font-size: 0.75rem;
+      color: var(--warm-gray);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .item-count {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--sage);
+      line-height: 1;
+    }
+
+    /* ── MAIN CONTAINER ── */
+    .app-body {
+      width: 100%;
+      max-width: 520px;
+      padding: 20px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── SCANNER SECTION ── */
+    .scanner-card {
+      background: var(--ink);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #scanner {
+      width: 100%;
+      height: 220px;
+      display: block;
+      background: #111;
+    }
+
+    #scanner video, #scanner canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+
+    .scanner-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .scanner-frame {
+      width: 180px;
+      height: 90px;
+      border: 2px solid var(--sage);
+      border-radius: 8px;
+      box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
+      position: relative;
+    }
+
+    .scanner-frame::before,
+    .scanner-frame::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+    }
+    .scanner-frame::before { top: -2px; left: -2px; border-top: 3px solid #fff; border-left: 3px solid #fff; border-radius: 6px 0 0 0; }
+    .scanner-frame::after  { bottom: -2px; right: -2px; border-bottom: 3px solid #fff; border-right: 3px solid #fff; border-radius: 0 0 6px 0; }
+
+    #startApp {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--sage);
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      padding: 10px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    #startApp:hover { background: #6a8e6e; transform: translateX(-50%) scale(1.03); }
+    #startApp:active { transform: translateX(-50%) scale(0.98); }
+    #startApp .icon { font-size: 1rem; }
+
+    /* ── FEEDBACK TOAST ── */
+    #scanFeedback {
+      display: none;
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--cream);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 100px;
+      z-index: 9999;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      animation: slideUp 0.2s ease;
+    }
+
+    #scanFeedback.success { background: var(--sage); }
+    #scanFeedback.error   { background: var(--rust); }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* ── MANUAL INPUT ── */
+    .manual-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .manual-card input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      background: var(--cream);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .manual-card input:focus { border-color: var(--sage); }
+    .manual-card input::placeholder { color: var(--warm-gray); }
+
+    .manual-card button {
+      background: var(--sage);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .manual-card button:hover { background: #6a8e6e; transform: scale(1.02); }
+    .manual-card button:active { transform: scale(0.97); }
+
+    /* ── SEARCH ── */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--warm-gray);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    #search {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px 12px 40px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      background: var(--card-bg);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #search:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(122,158,126,0.15); }
+    #search::placeholder { color: var(--warm-gray); }
+
+    /* ── LIST ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--warm-gray);
+      padding: 0 2px;
+    }
+
+    #list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #list li {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s, opacity 0.2s;
+      user-select: none;
+    }
+
+    #list li:hover { background: #fff; transform: translateY(-1px); }
+    #list li:active { transform: scale(0.99); }
+
+    /* Checkbox indicator */
+    #list li .check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.7rem;
+      color: transparent;
+    }
+
+    #list li.taken .check {
+      background: var(--sage);
+      border-color: var(--sage);
+      color: #fff;
+    }
+
+    #list li .product-info { flex: 1; }
+
+    #list li .product-name {
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: var(--ink);
+      transition: color 0.2s;
+    }
+
+    #list li .product-qty {
+      font-size: 0.75rem;
+      color: var(--warm-gray);
+      margin-top: 1px;
+    }
+
+    #list li.taken {
+      opacity: 0.45;
+    }
+
+    #list li.taken .product-name {
+      text-decoration: line-through;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--warm-gray);
+    }
+
+    .empty-state .emoji { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
 
-<h1>Spiżarnia</h1>
-<button id="startApp">Start skanera</button>
-<div id="scanner"></div>
-<div id="scanFeedback"></div>
-<div class="manual">
-  <input id="manualBarcode" placeholder="Wpisz kod kreskowy">
-  <button onclick="manualAdd()">Dodaj</button>
-</div>
-<input
-  id="search"
-  placeholder="Szukaj produktu..."
-  oninput="filterList()"/>
+<!-- HEADER -->
+<header class="app-header">
+  <div>
+    <div class="subtitle">Twoja</div>
+    <h1>Spiżarnia</h1>
+  </div>
+  <div>
+    <div class="subtitle">Produkty</div>
+    <div class="item-count" id="itemCount">0</div>
+  </div>
+</header>
+
+<main class="app-body">
+
+  <!-- SCANNER -->
+  <div class="scanner-card">
+    <div id="scanner"></div>
+    <div class="scanner-overlay">
+      <div class="scanner-frame"></div>
+    </div>
+    <button id="startApp"><span class="icon">📷</span> Uruchom skaner</button>
+  </div>
+
+  <!-- FEEDBACK TOAST -->
+  <div id="scanFeedback"></div>
+
+  <!-- MANUAL INPUT -->
+  <div class="manual-card">
+    <input id="manualBarcode" type="text" placeholder="Wpisz kod kreskowy…" inputmode="numeric">
+    <button onclick="manualAdd()">Dodaj</button>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input id="search" type="text" placeholder="Szukaj produktu…" oninput="filterList()" />
+  </div>
+
+  <!-- LIST LABEL -->
+  <div class="section-label">Lista produktów</div>
+
+  <!-- PRODUCT LIST -->
+  <ul id="list">
+    <li class="empty-state" style="background:transparent;border:none;pointer-events:none;">
+      <div class="emoji">🧺</div>
+      <p>Brak produktów.<br>Zeskanuj lub dodaj ręcznie.</p>
+    </li>
+  </ul>
+
+</main>
 
 <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-<ul id="list"></ul>
+
 <script src="https://unpkg.com/@supabase/supabase-js"></script>
 <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 <script src="app.js"></script>
+
+<!-- Patch renderList to add new elements + update counter -->
+<script>
+  const _originalRenderList = typeof renderList !== 'undefined' ? renderList : null;
+
+  function updateCount(items) {
+    const el = document.getElementById('itemCount');
+    if (el) el.textContent = items.length;
+  }
+
+  // Override renderList after app.js runs
+  document.addEventListener('DOMContentLoaded', () => {
+    const origRender = window.renderList;
+    if (!origRender) return;
+
+    window.renderList = function(items) {
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        list.innerHTML = `
+          <li style="background:transparent;border:none;pointer-events:none;justify-content:center;">
+            <div class="empty-state">
+              <div class="emoji">🧺</div>
+              <p>Brak produktów.<br>Zeskanuj lub dodaj ręcznie.</p>
+            </div>
+          </li>`;
+        updateCount([]);
+        return;
+      }
+
+      updateCount(items);
+
+      items.forEach(item => {
+        const li = document.createElement('li');
+        if (item.taken) li.classList.add('taken');
+
+        li.innerHTML = `
+          <div class="check">${item.taken ? '✓' : ''}</div>
+          <div class="product-info">
+            <div class="product-name">${item.products.name}</div>
+            <div class="product-qty">ilość: ${item.quantity}</div>
+          </div>`;
+
+        li.addEventListener('click', async () => {
+          const newTaken = !item.taken;
+          item.taken = newTaken;
+          li.classList.toggle('taken', newTaken);
+          li.querySelector('.check').textContent = newTaken ? '✓' : '';
+
+          await supabaseClient
+            .from('pantry')
+            .update({ taken: newTaken })
+            .eq('id', item.id);
+        });
+
+        list.appendChild(li);
+      });
+    };
+  });
+
+  // Also patch showFeedback to add class
+  const _origShowFeedback = window.showFeedback;
+  window.showFeedback = function(text, error = false) {
+    const box = document.getElementById('scanFeedback');
+    if (!box) return;
+    box.textContent = text;
+    box.className = error ? 'error' : 'success';
+    box.style.display = 'block';
+    setTimeout(() => { box.style.display = 'none'; }, 2000);
+  };
+</script>
 </body>
 </html>
