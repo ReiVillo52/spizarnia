@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spiżarnia</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 
   <style>
@@ -13,13 +13,16 @@
       --cream: #f5f0e8;
       --ink: #1a1a18;
       --sage: #7a9e7e;
+      --sage-light: rgba(122,158,126,0.12);
       --rust: #c4623a;
+      --rust-light: rgba(196,98,58,0.12);
       --warm-gray: #8c8880;
       --card-bg: #fffdf8;
       --border: #e2ddd4;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'DM Sans', sans-serif;
@@ -29,60 +32,61 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0;
     }
 
-    /* ── HEADER ── */
+    /* ══ HEADER ══ */
     .app-header {
       width: 100%;
-      background-color: var(--ink);
-      color: var(--cream);
-      padding: 28px 24px 22px;
+      background: var(--ink);
+      padding: 28px 24px 20px;
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 200;
     }
 
     .app-header h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.2rem;
       color: var(--cream);
-      letter-spacing: -0.5px;
       line-height: 1;
     }
 
     .app-header .subtitle {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--warm-gray);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       margin-bottom: 4px;
     }
 
-    .item-count {
+    .header-stats { display: flex; gap: 20px; align-items: flex-end; }
+    .stat-block   { text-align: right; }
+
+    .stat-num {
       font-family: 'Playfair Display', serif;
-      font-size: 2.2rem;
-      color: var(--sage);
+      font-size: 2rem;
       line-height: 1;
     }
+    .stat-num.sage { color: var(--sage); }
+    .stat-num.rust { color: var(--rust); }
 
-    /* ── MAIN CONTAINER ── */
+    /* ══ MAIN ══ */
     .app-body {
       width: 100%;
       max-width: 520px;
-      padding: 20px 16px 60px;
+      padding: 18px 16px 100px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
-    /* ── SCANNER SECTION ── */
+    /* ══ SCANNER ══ */
     .scanner-card {
       background: var(--ink);
-      border-radius: 16px;
+      border-radius: 18px;
       overflow: hidden;
       position: relative;
     }
@@ -104,31 +108,45 @@
       position: absolute;
       inset: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
       pointer-events: none;
     }
 
     .scanner-frame {
-      width: 180px;
-      height: 90px;
-      border: 2px solid var(--sage);
-      border-radius: 8px;
+      width: 200px;
+      height: 100px;
+      border: 2px solid rgba(122,158,126,0.6);
+      border-radius: 10px;
       box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
       position: relative;
+      overflow: hidden;
+    }
+
+    .scanner-line {
+      position: absolute;
+      left: 6px; right: 6px;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--sage), transparent);
+      animation: scanline 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scanline {
+      0%   { transform: translateY(-35px); opacity: 0; }
+      20%  { opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateY(35px); opacity: 0; }
     }
 
     .scanner-frame::before,
     .scanner-frame::after {
       content: '';
       position: absolute;
-      width: 20px;
-      height: 20px;
+      width: 18px; height: 18px;
     }
-    .scanner-frame::before { top: -2px; left: -2px; border-top: 3px solid #fff; border-left: 3px solid #fff; border-radius: 6px 0 0 0; }
-    .scanner-frame::after  { bottom: -2px; right: -2px; border-bottom: 3px solid #fff; border-right: 3px solid #fff; border-radius: 0 0 6px 0; }
+    .scanner-frame::before { top:-2px; left:-2px; border-top:3px solid #fff; border-left:3px solid #fff; border-radius:6px 0 0 0; }
+    .scanner-frame::after  { bottom:-2px; right:-2px; border-bottom:3px solid #fff; border-right:3px solid #fff; border-radius:0 0 6px 0; }
 
     #startApp {
       position: absolute;
@@ -139,11 +157,10 @@
       color: #fff;
       border: none;
       border-radius: 100px;
-      padding: 10px 28px;
+      padding: 10px 26px;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.85rem;
       font-weight: 600;
-      letter-spacing: 0.05em;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -152,12 +169,10 @@
       white-space: nowrap;
       z-index: 10;
     }
+    #startApp:hover  { background:#6a8e6e; transform:translateX(-50%) scale(1.03); }
+    #startApp:active { transform:translateX(-50%) scale(0.97); }
 
-    #startApp:hover { background: #6a8e6e; transform: translateX(-50%) scale(1.03); }
-    #startApp:active { transform: translateX(-50%) scale(0.98); }
-    #startApp .icon { font-size: 1rem; }
-
-    /* ── FEEDBACK TOAST ── */
+    /* ══ TOAST ══ */
     #scanFeedback {
       display: none;
       position: fixed;
@@ -168,30 +183,29 @@
       color: var(--cream);
       font-size: 0.9rem;
       font-weight: 500;
-      padding: 12px 24px;
+      padding: 12px 22px;
       border-radius: 100px;
       z-index: 9999;
       white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-      animation: slideUp 0.2s ease;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      animation: toastIn 0.22s ease;
     }
-
     #scanFeedback.success { background: var(--sage); }
     #scanFeedback.error   { background: var(--rust); }
 
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @keyframes toastIn {
+      from { opacity:0; transform:translateX(-50%) translateY(12px); }
+      to   { opacity:1; transform:translateX(-50%) translateY(0); }
     }
 
-    /* ── MANUAL INPUT ── */
+    /* ══ MANUAL INPUT ══ */
     .manual-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 16px;
+      padding: 14px;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
@@ -199,7 +213,7 @@
       flex: 1;
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 11px 14px;
+      padding: 10px 13px;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.95rem;
       background: var(--cream);
@@ -207,7 +221,6 @@
       outline: none;
       transition: border-color 0.2s;
     }
-
     .manual-card input:focus { border-color: var(--sage); }
     .manual-card input::placeholder { color: var(--warm-gray); }
 
@@ -216,7 +229,7 @@
       color: #fff;
       border: none;
       border-radius: 10px;
-      padding: 11px 18px;
+      padding: 10px 18px;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.9rem;
       font-weight: 600;
@@ -224,134 +237,351 @@
       transition: background 0.2s, transform 0.15s;
       white-space: nowrap;
     }
+    .manual-card button:hover  { background:#6a8e6e; }
+    .manual-card button:active { transform:scale(0.96); }
 
-    .manual-card button:hover { background: #6a8e6e; transform: scale(1.02); }
-    .manual-card button:active { transform: scale(0.97); }
-
-    /* ── SEARCH ── */
-    .search-wrap {
-      position: relative;
+    /* ══ TOOLBAR ══ */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
+
+    .search-wrap { position: relative; flex: 1; }
 
     .search-icon {
       position: absolute;
-      left: 14px;
+      left: 13px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--warm-gray);
-      font-size: 1rem;
+      font-size: 0.9rem;
       pointer-events: none;
+      color: var(--warm-gray);
     }
 
     #search {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px 14px 12px 40px;
+      padding: 11px 13px 11px 38px;
       font-family: 'DM Sans', sans-serif;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       background: var(--card-bg);
       color: var(--ink);
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
-
-    #search:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(122,158,126,0.15); }
+    #search:focus { border-color:var(--sage); box-shadow:0 0 0 3px rgba(122,158,126,0.15); }
     #search::placeholder { color: var(--warm-gray); }
 
-    /* ── LIST ── */
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+      color: var(--ink);
+    }
+    .icon-btn:hover  { background: #fff; border-color: var(--sage); }
+    .icon-btn.active { background: var(--sage-light); border-color: var(--sage); }
+
+    /* ══ FILTER CHIPS ══ */
+    .filter-chips {
+      display: none;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .filter-chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      background: var(--card-bg);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      color: var(--warm-gray);
+    }
+    .chip:hover  { border-color: var(--sage); color: var(--ink); }
+    .chip.active { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+
+    /* ══ SORT DROPDOWN ══ */
+    .sort-wrap { position: relative; }
+
+    .sort-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 500;
+      min-width: 185px;
+      overflow: hidden;
+    }
+    .sort-dropdown.open { display: block; animation: fadeInD 0.15s; }
+
+    @keyframes fadeInD { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+    .sort-option {
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.1s;
+      color: var(--ink);
+    }
+    .sort-option:hover  { background: var(--cream); }
+    .sort-option.active { font-weight: 600; color: var(--sage); }
+
+    /* ══ SECTION LABEL ══ */
     .section-label {
       font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.13em;
       text-transform: uppercase;
       color: var(--warm-gray);
       padding: 0 2px;
     }
 
+    /* ══ PRODUCT LIST ══ */
     #list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
-    #list li {
+    #list li.product-item {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 14px 16px;
+      padding: 12px 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.15s, opacity 0.2s;
-      user-select: none;
+      gap: 10px;
+      transition: background 0.15s, opacity 0.25s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
     }
 
-    #list li:hover { background: #fff; transform: translateY(-1px); }
-    #list li:active { transform: scale(0.99); }
+    #list li.product-item:hover { background: #fff; box-shadow: var(--shadow); }
 
-    /* Checkbox indicator */
-    #list li .check {
-      width: 22px;
-      height: 22px;
+    #list li.product-item.taken { opacity: 0.38; }
+
+    /* check button */
+    .check-btn {
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       border: 2px solid var(--border);
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.2s, background 0.2s;
-      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.75rem;
       color: transparent;
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
     }
-
-    #list li.taken .check {
+    .check-btn:hover { border-color: var(--sage); background: var(--sage-light); }
+    .product-item.taken .check-btn {
       background: var(--sage);
       border-color: var(--sage);
       color: #fff;
     }
 
-    #list li .product-info { flex: 1; }
+    .product-info { flex: 1; min-width: 0; }
 
-    #list li .product-name {
+    .product-name {
       font-weight: 500;
-      font-size: 0.95rem;
-      color: var(--ink);
-      transition: color 0.2s;
+      font-size: 0.92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+    .product-item.taken .product-name { text-decoration: line-through; }
 
-    #list li .product-qty {
-      font-size: 0.75rem;
+    .product-meta {
+      font-size: 0.72rem;
       color: var(--warm-gray);
       margin-top: 1px;
     }
 
-    #list li.taken {
-      opacity: 0.45;
+    /* ── qty controls ── */
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
     }
 
-    #list li.taken .product-name {
-      text-decoration: line-through;
+    .qty-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--ink);
+      transition: all 0.15s;
+      box-shadow: none;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .qty-btn:hover  { transform: scale(1.12); }
+    .qty-btn.plus:hover  { background: var(--sage); border-color: var(--sage); color: #fff; }
+    .qty-btn.minus:hover { background: var(--rust-light); border-color: var(--rust); color: var(--rust); }
+    .qty-btn:active { transform: scale(0.92); }
+
+    .qty-display {
+      font-weight: 600;
+      font-size: 0.95rem;
+      min-width: 24px;
+      text-align: center;
     }
 
-    /* ── EMPTY STATE ── */
+    /* ══ EMPTY STATE ══ */
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 48px 20px;
       color: var(--warm-gray);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none;
+    }
+    .empty-state .emoji { font-size: 2.8rem; margin-bottom: 14px; }
+    .empty-state p { font-size: 0.9rem; line-height: 1.7; }
+
+    /* ══ CONFIRM MODAL ══ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,26,24,0.55);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    .modal-backdrop.open { display: flex; animation: fadeBg 0.18s ease; }
+
+    @keyframes fadeBg { from { opacity:0; } to { opacity:1; } }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 24px 24px 0 0;
+      padding: 20px 24px 36px;
+      width: 100%;
+      max-width: 520px;
+      animation: slideUp2 0.22s ease;
     }
 
-    .empty-state .emoji { font-size: 2.5rem; margin-bottom: 12px; }
-    .empty-state p { font-size: 0.9rem; line-height: 1.6; }
-
-    /* ── DIVIDER ── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 4px 0;
+    @keyframes slideUp2 {
+      from { transform: translateY(40px); opacity:0; }
+      to   { transform: translateY(0);    opacity:1; }
     }
+
+    .modal-drag { width:40px; height:4px; background:var(--border); border-radius:10px; margin:0 auto 18px; }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+
+    .modal-body {
+      font-size: 0.9rem;
+      color: var(--warm-gray);
+      margin-bottom: 22px;
+      line-height: 1.7;
+    }
+
+    .modal-product-name { font-weight: 600; color: var(--ink); }
+
+    .modal-actions { display: flex; gap: 10px; }
+
+    .modal-btn {
+      flex: 1;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .modal-btn.cancel         { background: var(--cream); border:1px solid var(--border); color:var(--ink); }
+    .modal-btn.cancel:hover   { background: var(--border); }
+    .modal-btn.confirm-delete { background: var(--rust); color:#fff; }
+    .modal-btn.confirm-delete:hover { background: #b3562f; }
+    .modal-btn.confirm-add    { background: var(--sage); color:#fff; }
+    .modal-btn.confirm-add:hover    { background: #6a8e6e; }
+
+    /* ══ BULK ACTION BAR ══ */
+    .bulk-bar {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--cream);
+      border-radius: 100px;
+      padding: 12px 20px;
+      gap: 14px;
+      align-items: center;
+      z-index: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .bulk-bar.visible { display: flex; animation: toastIn 0.2s; }
+
+    .bulk-btn {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0;
+      opacity: 0.8;
+    }
+    .bulk-btn:hover { opacity: 1; text-decoration: underline; }
+    .bulk-btn.danger { color: #ff8a7a; }
+
+    .bulk-divider { opacity: 0.3; }
   </style>
 </head>
 <body>
@@ -362,9 +592,15 @@
     <div class="subtitle">Twoja</div>
     <h1>Spiżarnia</h1>
   </div>
-  <div>
-    <div class="subtitle">Produkty</div>
-    <div class="item-count" id="itemCount">0</div>
+  <div class="header-stats">
+    <div class="stat-block">
+      <div class="subtitle">Produkty</div>
+      <div class="stat-num sage" id="itemCount">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="subtitle">Wzięte</div>
+      <div class="stat-num rust" id="takenCount">0</div>
+    </div>
   </div>
 </header>
 
@@ -374,38 +610,70 @@
   <div class="scanner-card">
     <div id="scanner"></div>
     <div class="scanner-overlay">
-      <div class="scanner-frame"></div>
+      <div class="scanner-frame">
+        <div class="scanner-line"></div>
+      </div>
     </div>
-    <button id="startApp"><span class="icon">📷</span> Uruchom skaner</button>
+    <button id="startApp">📷 Uruchom skaner</button>
   </div>
 
-  <!-- FEEDBACK TOAST -->
+  <!-- TOAST -->
   <div id="scanFeedback"></div>
 
   <!-- MANUAL INPUT -->
   <div class="manual-card">
     <input id="manualBarcode" type="text" placeholder="Wpisz kod kreskowy…" inputmode="numeric">
-    <button onclick="manualAdd()">Dodaj</button>
+    <button onclick="manualAdd()">+ Dodaj</button>
   </div>
 
-  <!-- SEARCH -->
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input id="search" type="text" placeholder="Szukaj produktu…" oninput="filterList()" />
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="search" type="text" placeholder="Szukaj produktu…" oninput="filterList()" />
+    </div>
+    <div class="sort-wrap">
+      <button class="icon-btn" id="sortBtn" title="Sortuj" onclick="toggleSort()">⇅</button>
+      <div class="sort-dropdown" id="sortDropdown">
+        <div class="sort-option active" data-sort="date" onclick="setSort('date')">📅 Ostatnio dodane</div>
+        <div class="sort-option" data-sort="name" onclick="setSort('name')">🔤 Nazwa A–Z</div>
+        <div class="sort-option" data-sort="qty" onclick="setSort('qty')">🔢 Ilość malejąco</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="filterBtn" title="Filtry" onclick="toggleFilter()">⚙</button>
   </div>
 
-  <!-- LIST LABEL -->
-  <div class="section-label">Lista produktów</div>
+  <!-- FILTER CHIPS -->
+  <div class="filter-chips" id="filterChips">
+    <div class="chip active" data-filter="all"       onclick="setFilter('all')">Wszystkie</div>
+    <div class="chip"        data-filter="available" onclick="setFilter('available')">Dostępne</div>
+    <div class="chip"        data-filter="taken"     onclick="setFilter('taken')">Wzięte</div>
+    <div class="chip"        data-filter="low"       onclick="setFilter('low')">Mała ilość (&lt;3)</div>
+  </div>
 
-  <!-- PRODUCT LIST -->
-  <ul id="list">
-    <li class="empty-state" style="background:transparent;border:none;pointer-events:none;">
-      <div class="emoji">🧺</div>
-      <p>Brak produktów.<br>Zeskanuj lub dodaj ręcznie.</p>
-    </li>
-  </ul>
+  <!-- LIST -->
+  <div class="section-label" id="listLabel">Lista produktów</div>
+  <ul id="list"></ul>
 
 </main>
+
+<!-- BULK ACTION BAR -->
+<div class="bulk-bar" id="bulkBar">
+  <span id="bulkLabel">0 wziętych</span>
+  <span class="bulk-divider">|</span>
+  <button class="bulk-btn" onclick="clearTaken()">Odznacz wszystkie</button>
+  <button class="bulk-btn danger" onclick="deleteAllTaken()">🗑 Usuń wzięte</button>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="modalTitle">Potwierdzenie</div>
+    <div class="modal-body"  id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
 
 <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
 
@@ -413,76 +681,284 @@
 <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 <script src="app.js"></script>
 
-<!-- Patch renderList to add new elements + update counter -->
 <script>
-  const _originalRenderList = typeof renderList !== 'undefined' ? renderList : null;
+/* ══════════════════════════════════════════════════
+   UI OVERRIDES + NEW LOGIC
+══════════════════════════════════════════════════ */
 
-  function updateCount(items) {
-    const el = document.getElementById('itemCount');
-    if (el) el.textContent = items.length;
+let currentSort   = 'date';
+let currentFilter = 'all';
+let showingFilter = false;
+let showingSort   = false;
+
+/* ── TOAST ── */
+window.showFeedback = function(text, error = false) {
+  const box = document.getElementById('scanFeedback');
+  if (!box) return;
+  box.textContent = text;
+  box.className = error ? 'error' : 'success';
+  box.style.display = 'block';
+  clearTimeout(box._t);
+  box._t = setTimeout(() => { box.style.display = 'none'; }, 2200);
+};
+
+/* ── MODAL ── */
+function openModal({ title, body, actions }) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  const ac = document.getElementById('modalActions');
+  ac.innerHTML = '';
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = `modal-btn ${a.cls}`;
+    btn.textContent = a.label;
+    btn.onclick = () => { document.getElementById('modalBackdrop').classList.remove('open'); a.fn(); };
+    ac.appendChild(btn);
+  });
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalBackdrop')) return;
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+
+/* ── SORT ── */
+function toggleSort() {
+  showingSort = !showingSort;
+  document.getElementById('sortDropdown').classList.toggle('open', showingSort);
+  document.getElementById('sortBtn').classList.toggle('active', showingSort);
+}
+
+function setSort(s) {
+  currentSort = s;
+  document.querySelectorAll('.sort-option').forEach(el => el.classList.toggle('active', el.dataset.sort === s));
+  showingSort = false;
+  document.getElementById('sortDropdown').classList.remove('open');
+  document.getElementById('sortBtn').classList.remove('active');
+  renderList(window._cache || []);
+}
+
+/* ── FILTER ── */
+function toggleFilter() {
+  showingFilter = !showingFilter;
+  document.getElementById('filterChips').style.display = showingFilter ? 'flex' : 'none';
+  document.getElementById('filterBtn').classList.toggle('active', showingFilter);
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.chip').forEach(el => el.classList.toggle('active', el.dataset.filter === f));
+  renderList(window._cache || []);
+}
+
+/* close sort on outside click */
+document.addEventListener('click', (e) => {
+  if (showingSort && !e.target.closest('.sort-wrap')) {
+    showingSort = false;
+    document.getElementById('sortDropdown').classList.remove('open');
+    document.getElementById('sortBtn').classList.remove('active');
+  }
+});
+
+/* ── SEARCH (override filterList) ── */
+window.filterList = function() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = (window._cache || []).filter(i =>
+    i.products.name.toLowerCase().includes(q)
+  );
+  renderList(filtered, true); // skipCache=true so we don't overwrite full cache
+};
+
+/* ── RENDER LIST ── */
+window.renderList = function(items, skipCache) {
+  if (!skipCache) window._cache = items;
+
+  // apply filter
+  let filtered = items;
+  if (currentFilter === 'available') filtered = items.filter(i => !i.taken);
+  if (currentFilter === 'taken')     filtered = items.filter(i =>  i.taken);
+  if (currentFilter === 'low')       filtered = items.filter(i =>  i.quantity < 3);
+
+  // apply sort
+  filtered = [...filtered];
+  if (currentSort === 'name') filtered.sort((a,b) => a.products.name.localeCompare(b.products.name, 'pl'));
+  if (currentSort === 'qty')  filtered.sort((a,b) => b.quantity - a.quantity);
+
+  // stats
+  const allItems = window._cache || [];
+  const total = allItems.length;
+  const takenN = allItems.filter(i => i.taken).length;
+  document.getElementById('itemCount').textContent  = total;
+  document.getElementById('takenCount').textContent = takenN;
+  document.getElementById('listLabel').textContent  = `Lista produktów (${filtered.length})`;
+
+  // bulk bar
+  const bulkBar = document.getElementById('bulkBar');
+  if (takenN > 0) {
+    bulkBar.classList.add('visible');
+    document.getElementById('bulkLabel').textContent = `${takenN} ${takenN === 1 ? 'wzięty' : 'wziętych'}`;
+  } else {
+    bulkBar.classList.remove('visible');
   }
 
-  // Override renderList after app.js runs
-  document.addEventListener('DOMContentLoaded', () => {
-    const origRender = window.renderList;
-    if (!origRender) return;
+  const list = document.getElementById('list');
+  list.innerHTML = '';
 
-    window.renderList = function(items) {
-      const list = document.getElementById('list');
-      list.innerHTML = '';
+  if (!filtered.length) {
+    const li = document.createElement('li');
+    li.className = 'empty-state';
+    li.innerHTML = `<div class="emoji">🧺</div><p>Brak produktów.<br>Zeskanuj lub dodaj ręcznie.</p>`;
+    list.appendChild(li);
+    return;
+  }
 
-      if (!items || items.length === 0) {
-        list.innerHTML = `
-          <li style="background:transparent;border:none;pointer-events:none;justify-content:center;">
-            <div class="empty-state">
-              <div class="emoji">🧺</div>
-              <p>Brak produktów.<br>Zeskanuj lub dodaj ręcznie.</p>
-            </div>
-          </li>`;
-        updateCount([]);
+  filtered.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'product-item' + (item.taken ? ' taken' : '');
+
+    li.innerHTML = `
+      <button class="check-btn" title="Oznacz/odznacz">${item.taken ? '✓' : ''}</button>
+      <div class="product-info">
+        <div class="product-name">${item.products.name}</div>
+        <div class="product-meta">${item.location || 'spiżarnia'}</div>
+      </div>
+      <div class="qty-controls">
+        <button class="qty-btn minus" title="Zmniejsz ilość">−</button>
+        <span class="qty-display">${item.quantity}</span>
+        <button class="qty-btn plus" title="Zwiększ ilość">+</button>
+      </div>
+    `;
+
+    /* CHECK (taken toggle) */
+    li.querySelector('.check-btn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const newTaken = !item.taken;
+      item.taken = newTaken;
+      li.classList.toggle('taken', newTaken);
+      li.querySelector('.check-btn').textContent = newTaken ? '✓' : '';
+      refreshStats();
+      await supabaseClient.from('pantry').update({ taken: newTaken }).eq('id', item.id);
+    });
+
+    /* PLUS */
+    li.querySelector('.qty-btn.plus').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newQty = item.quantity + 1;
+      openModal({
+        title: '+ Dodaj sztukę',
+        body: `Zwiększyć ilość <span class="modal-product-name">${item.products.name}</span> do <strong>${newQty}</strong>?`,
+        actions: [
+          { label: 'Anuluj', cls: 'cancel', fn: () => {} },
+          { label: `Dodaj (${newQty})`, cls: 'confirm-add', fn: async () => {
+            item.quantity = newQty;
+            li.querySelector('.qty-display').textContent = newQty;
+            showFeedback(`✓ ${item.products.name} → ${newQty} szt.`);
+            await supabaseClient.from('pantry').update({ quantity: newQty }).eq('id', item.id);
+          }}
+        ]
+      });
+    });
+
+    /* MINUS */
+    li.querySelector('.qty-btn.minus').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (item.quantity <= 1) {
+        openModal({
+          title: '🗑 Usuń produkt?',
+          body: `Ilość wynosi już 1. Usunąć <span class="modal-product-name">${item.products.name}</span> ze spiżarni?`,
+          actions: [
+            { label: 'Anuluj', cls: 'cancel', fn: () => {} },
+            { label: 'Usuń', cls: 'confirm-delete', fn: async () => {
+              li.style.opacity = '0';
+              li.style.transform = 'translateX(20px)';
+              setTimeout(() => li.remove(), 300);
+              const idx = (window._cache || []).findIndex(i => i.id === item.id);
+              if (idx !== -1) window._cache.splice(idx, 1);
+              refreshStats();
+              showFeedback(`🗑 Usunięto: ${item.products.name}`);
+              await supabaseClient.from('pantry').delete().eq('id', item.id);
+            }}
+          ]
+        });
         return;
       }
 
-      updateCount(items);
-
-      items.forEach(item => {
-        const li = document.createElement('li');
-        if (item.taken) li.classList.add('taken');
-
-        li.innerHTML = `
-          <div class="check">${item.taken ? '✓' : ''}</div>
-          <div class="product-info">
-            <div class="product-name">${item.products.name}</div>
-            <div class="product-qty">ilość: ${item.quantity}</div>
-          </div>`;
-
-        li.addEventListener('click', async () => {
-          const newTaken = !item.taken;
-          item.taken = newTaken;
-          li.classList.toggle('taken', newTaken);
-          li.querySelector('.check').textContent = newTaken ? '✓' : '';
-
-          await supabaseClient
-            .from('pantry')
-            .update({ taken: newTaken })
-            .eq('id', item.id);
-        });
-
-        list.appendChild(li);
+      const newQty = item.quantity - 1;
+      openModal({
+        title: '− Zmniejsz ilość',
+        body: `Zmniejszyć ilość <span class="modal-product-name">${item.products.name}</span> do <strong>${newQty}</strong>?`,
+        actions: [
+          { label: 'Anuluj',   cls: 'cancel',         fn: () => {} },
+          { label: `Zmniejsz (${newQty})`, cls: 'confirm-delete', fn: async () => {
+            item.quantity = newQty;
+            li.querySelector('.qty-display').textContent = newQty;
+            showFeedback(`↓ ${item.products.name} → ${newQty} szt.`);
+            await supabaseClient.from('pantry').update({ quantity: newQty }).eq('id', item.id);
+          }}
+        ]
       });
-    };
-  });
+    });
 
-  // Also patch showFeedback to add class
-  const _origShowFeedback = window.showFeedback;
-  window.showFeedback = function(text, error = false) {
-    const box = document.getElementById('scanFeedback');
-    if (!box) return;
-    box.textContent = text;
-    box.className = error ? 'error' : 'success';
-    box.style.display = 'block';
-    setTimeout(() => { box.style.display = 'none'; }, 2000);
-  };
+    list.appendChild(li);
+  });
+};
+
+function refreshStats() {
+  const all    = window._cache || [];
+  const taken  = all.filter(i => i.taken).length;
+  document.getElementById('itemCount').textContent  = all.length;
+  document.getElementById('takenCount').textContent = taken;
+  const bulkBar = document.getElementById('bulkBar');
+  if (taken > 0) {
+    bulkBar.classList.add('visible');
+    document.getElementById('bulkLabel').textContent = `${taken} ${taken === 1 ? 'wzięty' : 'wziętych'}`;
+  } else {
+    bulkBar.classList.remove('visible');
+  }
+}
+
+/* ── BULK ACTIONS ── */
+function clearTaken() {
+  const takenItems = (window._cache || []).filter(i => i.taken);
+  if (!takenItems.length) return;
+  openModal({
+    title: 'Odznacz wzięte',
+    body: `Odznaczyć <strong>${takenItems.length}</strong> produktów?`,
+    actions: [
+      { label: 'Anuluj', cls: 'cancel', fn: () => {} },
+      { label: 'Odznacz wszystkie', cls: 'confirm-add', fn: async () => {
+        for (const item of takenItems) {
+          item.taken = false;
+          await supabaseClient.from('pantry').update({ taken: false }).eq('id', item.id);
+        }
+        renderList(window._cache || []);
+        showFeedback('✓ Odznaczono wszystkie');
+      }}
+    ]
+  });
+}
+
+function deleteAllTaken() {
+  const takenItems = (window._cache || []).filter(i => i.taken);
+  if (!takenItems.length) return;
+  openModal({
+    title: '🗑 Usuń wzięte produkty',
+    body: `Trwale usunąć <strong>${takenItems.length}</strong> ${takenItems.length === 1 ? 'produkt' : 'produktów'} oznaczonych jako wzięte?`,
+    actions: [
+      { label: 'Anuluj', cls: 'cancel', fn: () => {} },
+      { label: `Usuń ${takenItems.length}`, cls: 'confirm-delete', fn: async () => {
+        for (const item of takenItems) {
+          await supabaseClient.from('pantry').delete().eq('id', item.id);
+          const idx = (window._cache || []).findIndex(i => i.id === item.id);
+          if (idx !== -1) window._cache.splice(idx, 1);
+        }
+        renderList(window._cache || []);
+        showFeedback(`🗑 Usunięto ${takenItems.length} produktów`);
+      }}
+    ]
+  });
+}
 </script>
 </body>
 </html>
