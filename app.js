@@ -14,6 +14,26 @@ let processing = false;
 let scannerStarted = false;
 
 /***********************
+ * NORMALIZACJA KODU KRESKOWEGO
+ ***********************/
+function normalizeBarcode(code) {
+  if (!code) return '';
+  
+  // Usuń białe znaki i inne znaki specjalne
+  code = code.trim().replace(/\s+/g, '');
+  
+  // Usuń znaki niebędące cyframi (dla kodów EAN)
+  code = code.replace(/[^0-9]/g, '');
+  
+  // Dla kodów EAN-13: upewnij się, że ma 13 cyfr (dodaj zera z przodu jeśli brakuje)
+  if (code.length > 0 && code.length < 13) {
+    code = code.padStart(13, '0');
+  }
+  
+  return code;
+}
+
+/***********************
  * FEEDBACK – ZAWSZE WIDOCZNY NA TELEFONIE
  ***********************/
 function showFeedback(text, error = false) {
@@ -44,6 +64,14 @@ function showFeedback(text, error = false) {
  ***********************/
 async function addByBarcode(barcode) {
   if (!barcode) return;
+
+  // NORMALIZUJ KOD PRZED UŻYCIEM
+  barcode = normalizeBarcode(barcode);
+  
+  if (!barcode) {
+    showFeedback('Nieprawidłowy kod', true);
+    return;
+  }
 
   // 1️⃣ products
   let { data: product } = await supabaseClient
@@ -102,6 +130,59 @@ async function addByBarcode(barcode) {
 }
 
 /***********************
+ * EDYCJA NAZWY PRODUKTU
+ ***********************/
+// MUSI BYĆ GLOBALNA
+window.editProductName = function(productId, currentName) {
+  openModal({
+    title: '✏️ Edytuj nazwę',
+    body: `
+      <div style="margin-bottom: 15px;">Obecna nazwa: <span class="modal-product-name">${currentName}</span></div>
+      <input type="text" id="editNameInput" value="${currentName}" 
+             style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: 'DM Sans', sans-serif;" 
+             placeholder="Nowa nazwa produktu">
+    `,
+    actions: [
+      { label: 'Anuluj', cls: 'cancel', fn: () => {} },
+      { label: 'Zapisz', cls: 'confirm-add', fn: async () => {
+        const input = document.getElementById('editNameInput');
+        const newName = input?.value?.trim();
+        
+        if (!newName || newName === currentName) {
+          return;
+        }
+        
+        try {
+          // Aktualizuj w bazie products
+          const { error } = await supabaseClient
+            .from('products')
+            .update({ name: newName })
+            .eq('id', productId);
+          
+          if (error) throw error;
+          
+          // Odśwież listę
+          await loadPantry();
+          showFeedback(`✓ Zmieniono: ${newName}`);
+        } catch (error) {
+          console.error('Błąd edycji:', error);
+          showFeedback('Błąd zmiany nazwy', true);
+        }
+      }}
+    ]
+  });
+  
+  // Autofocus na input po otwarciu modalu
+  setTimeout(() => {
+    const input = document.getElementById('editNameInput');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }, 100);
+}
+
+/***********************
  * WCZYTYWANIE + LISTA (KLIK PALCEM)
  ***********************/
 async function loadPantry() {
@@ -111,7 +192,9 @@ async function loadPantry() {
       id,
       quantity,
       taken,
+      product_id,
       products (
+        id,
         name
       )
     `)

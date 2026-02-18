@@ -427,6 +427,32 @@
       margin-top: 1px;
     }
 
+    /* ── NOWY: Przycisk edycji nazwy ── */
+    .edit-name-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      transition: all 0.15s;
+      box-shadow: none;
+      padding: 0;
+      flex-shrink: 0;
+      color: var(--warm-gray);
+    }
+    .edit-name-btn:hover {
+      background: var(--sage-light);
+      border-color: var(--sage);
+      color: var(--sage);
+      transform: scale(1.1);
+    }
+    .edit-name-btn:active { transform: scale(0.92); }
+
     /* ── qty controls ── */
     .qty-controls {
       display: flex;
@@ -823,6 +849,7 @@ window.renderList = function(items, skipCache) {
         <div class="product-name">${item.products.name}</div>
         <div class="product-meta">${item.location || 'spiżarnia'}</div>
       </div>
+      <button class="edit-name-btn" title="Edytuj nazwę">✏️</button>
       <div class="qty-controls">
         <button class="qty-btn minus" title="Zmniejsz ilość">−</button>
         <span class="qty-display">${item.quantity}</span>
@@ -839,6 +866,12 @@ window.renderList = function(items, skipCache) {
       li.querySelector('.check-btn').textContent = newTaken ? '✓' : '';
       refreshStats();
       await supabaseClient.from('pantry').update({ taken: newTaken }).eq('id', item.id);
+    });
+
+    /* NOWY: EDYCJA NAZWY */
+    li.querySelector('.edit-name-btn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      window.editProductName(item.products.id, item.products.name);
     });
 
     /* PLUS */
